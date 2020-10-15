@@ -12,6 +12,8 @@ package ratgo
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/go-touch/ratgo/extend"
+	"github.com/go-touch/ratgo/extend/cache"
 	"net/http"
 	"reflect"
 )
@@ -33,7 +35,10 @@ func NewWebServer() *WebServer {
 
 // 初始化
 func (ws *WebServer) Init() {
-	Config.Init() // 配置初始化
+	Config.Init()                                       // 配置初始化
+	extend.Gorm.Init(Config.Get("database").ToAnyMap()) // 初始化数据库
+	cache.Redis.Init(Config.Get("redis").ToAnyMap())    // 初始化redis
+	ws.gin.Use(LoggerInit())                            // 日志注入
 }
 
 // 运行server
@@ -41,7 +46,7 @@ func (ws *WebServer) Run() {
 	_ = ws.registerMiddleWare()     // 注册中间件
 	_ = ws.registerRouter()         // 注册路由
 	_ = ws.registerStatic()         // 注册静态文件
-	_ = ws.gin.Run(Config.HttpAddr) // 运行gin
+	_ = ws.gin.Run(Config.HTTPAddr) // 运行gin
 }
 
 // 获取原生gin
@@ -51,7 +56,7 @@ func (ws *WebServer) Gin() *gin.Engine {
 
 // 注册全局中间件
 func (ws *WebServer) registerMiddleWare() error {
-	if middleWare := Middle.GetGlobalMiddleware(); len(middleWare) > 0 {
+	if middleWare := MiddleWare.GetGlobal(); len(middleWare) > 0 {
 		ws.gin.Use(middleWare...)
 	}
 	return nil
@@ -152,8 +157,8 @@ func (ws *WebServer) Response(context *gin.Context, result *Result) {
 	case "Html":
 		context.HTML(result.Status, result.Msg, result.Data)
 	}
-}
 
+}
 // 异常捕获
 func (ws *WebServer) errorCatch(context *gin.Context) {
 	if r := recover(); r != nil {

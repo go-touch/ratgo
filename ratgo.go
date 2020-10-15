@@ -9,7 +9,7 @@
 // limitations under the License.
 package ratgo
 
-
+// 应用容器
 var AppStorage map[string]interface{}
 
 // 初始化
@@ -19,15 +19,15 @@ func init() {
 
 // 运行web服务
 func RunWebServer() {
-	webServer := NewWebServer()
-	AppStorage["webServer"] = webServer
-	webServer.Init()
-	webServer.Run()
+	webServer := NewWebServer()         // 获取WebServer指针
+	AppStorage["WebServer"] = webServer // 存储WebServer
+	webServer.Init()                    // WebServer初始化
+	webServer.Run()                     // 运行WebServer
 }
 
 // 获取 *WebServer
 func GetWebServer() *WebServer {
-	if webServer, ok := AppStorage["webServer"]; ok {
+	if webServer, ok := AppStorage["WebServer"]; ok {
 		return webServer.(*WebServer)
 	}
 	return nil

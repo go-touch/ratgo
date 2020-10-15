@@ -22,7 +22,7 @@ type RouterStorage struct {
 	staticMap     map[string]string
 	staticFileMap map[string]string
 	htmlGlob      []string
-	html      []string
+	html          []string
 }
 
 // router对象
@@ -117,5 +117,3 @@ func (rs *RouterStorage) GetHTMLGlob() []string {
 func (rs *RouterStorage) GetHTMLGlob2() []string {
 	return rs.htmlGlob
 }
-
-

@@ -36,21 +36,31 @@ func NewResult() *Result {
 }
 
 // 设置Code
-func (r *Result) SetStatus(status int) {
+func (r *Result) SetStatus(status int) *Result {
 	r.Status = status
+	return r
 }
 
 // 设置Code
-func (r *Result) SetType(t string) {
+func (r *Result) SetType(t string) *Result {
 	r.Type = t
+	return r
 }
 
 // 设置Msg
-func (r *Result) SetMsg(msg string) {
+func (r *Result) SetMsg(msg string) *Result {
 	r.Msg = msg
+	return r
 }
 
 // 设置Data
-func (r *Result) SetData(data interface{}) {
+func (r *Result) SetData(data interface{}) *Result {
 	r.Data = data
+	return r
+}
+
+// 抛出异常
+func (r *Result) ThrowException() *Result{
+	r.SetStatus(900)
+	return r
 }

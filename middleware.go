@@ -13,42 +13,48 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Middleware struct{
-	GlobalMiddle []gin.HandlerFunc
-	GroupMiddle  map[string][]gin.HandlerFunc
+// 中间件容器
+type MiddleWareStorage struct {
+	global []gin.HandlerFunc
+	group  map[string][]gin.HandlerFunc
 }
 
-var Middle *Middleware
+// 初始化
+var MiddleWare *MiddleWareStorage
+
 func init() {
-	Middle = &Middleware{
-		GlobalMiddle : nil,
-		GroupMiddle : map[string][]gin.HandlerFunc{},
+	MiddleWare = &MiddleWareStorage{
+		global: make([]gin.HandlerFunc, 0),
+		group:  map[string][]gin.HandlerFunc{},
 	}
 }
 
-func (this *Middleware) RegisterMiddleware(handlerFuncs ...gin.HandlerFunc) []gin.HandlerFunc{
-	this.GlobalMiddle = append(this.GlobalMiddle,handlerFuncs...)
-	return this.GlobalMiddle
+// 设置全局中间件
+func (mws *MiddleWareStorage) SetGlobal(handlerFunc ...gin.HandlerFunc) {
+	mws.global = append(mws.global, handlerFunc...)
 }
 
-func (this *Middleware) RegisterGroupMiddleware(groupName string ,handlerFuncs ...gin.HandlerFunc) map[string][]gin.HandlerFunc {
-	this.GroupMiddle[groupName] = append(this.GroupMiddle[groupName],handlerFuncs...)
-	return this.GroupMiddle
+// 批量设置全局中间件
+func (mws *MiddleWareStorage) BatchSetGlobal(handlerFuncSlice []gin.HandlerFunc) {
+	mws.global = append(mws.global, handlerFuncSlice...)
 }
 
-/**
- * 获取全局中间件
- */
-func (this *Middleware) GetGlobalMiddleware() []gin.HandlerFunc{
-	return this.GlobalMiddle
+// 获取全局中间件
+func (mws *MiddleWareStorage) GetGlobal() []gin.HandlerFunc {
+	return mws.global
 }
 
-/**
- * 获取局部组中间件
- */
-func (this *Middleware) GetGroupMiddleware() map[string][]gin.HandlerFunc {
-	return this.GroupMiddle
+// 设置分组中间件
+func (mws *MiddleWareStorage) SetGroup(groupName string, handlerFunc ...gin.HandlerFunc) {
+	mws.group[groupName] = append(mws.group[groupName], handlerFunc...)
 }
 
+// 批量设置分组中间件
+func (mws *MiddleWareStorage) BatchSetGroup(groupName string, handlerFuncSlice []gin.HandlerFunc) {
+	mws.group[groupName] = append(mws.group[groupName], handlerFuncSlice...)
+}
 
-
+// 获取分组组中间件
+func (mws *MiddleWareStorage) GetGroup() map[string][]gin.HandlerFunc {
+	return mws.group
+}

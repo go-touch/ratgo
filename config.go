@@ -11,8 +11,8 @@ package ratgo
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlabj01.vdongchina.com/TemplateFramework/ratgo/config"
-	"gitlabj01.vdongchina.com/TemplateFramework/ratgo/types"
+	"github.com/go-touch/mtype"
+	"github.com/go-touch/ratgo/config"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -21,21 +21,26 @@ import (
 
 type ConfigStorage struct {
 	AppName        string // Application name
+	AppVersion     string // Application version
 	RunMode        string // Running Mode: dev | test | prod
 	AppPath        string
 	ConfigPath     string
 	RuntimePath    string
 	RuntimeLogPath string
 	EnableHTTP     bool
-	HttpAddr       string
+	HTTPAddr       string
 	EnableHTTPS    bool
 	HTTPSAddr      string
 	HTTPSCertFile  string
 	HTTPSKeyFile   string
 	RecoverPanic   bool
 	RecoverFunc    func(c *gin.Context)
-	DefinedConfig  types.AnyMap
+	DefinedConfig  mtype.AnyMap
 	Error          error
+	Pattern        string // debug:list; release
+	StoreFormat    int    // 1:text; 2:json;
+	Storage        string // local; syslog; redis; es; mongo
+	ProjectName    string // 项目名称
 }
 
 var (
@@ -55,12 +60,15 @@ func init() {
 		ConfigPath:     "",
 		RuntimePath:    "",
 		RuntimeLogPath: "",
-		EnableHTTP:     true,
-		HttpAddr:       "127.0.0.1:8080",
+		HTTPAddr:       "127.0.0.1:8080",
 		HTTPSAddr:      "127.0.0.1:10443",
 		HTTPSCertFile:  "",
 		HTTPSKeyFile:   "",
-		DefinedConfig:  types.AnyMap{},
+		DefinedConfig:  mtype.AnyMap{},
+		Pattern:        "debug",
+		StoreFormat:    1,
+		Storage:        "local",
+		ProjectName:    "lianxilog",
 	}
 }
 
@@ -82,7 +90,7 @@ func (cs *ConfigStorage) Init(outAnyMap ...map[string]interface{}) {
 		"RuntimeLogPath": "runtime.log",
 	}
 	for key, value := range pathMap {
-		realpath := cs.joinPath(cs.AppPath, cs.joinPath(strings.Split(value, ".")...))
+		realpath := filepath.Join(cs.AppPath, filepath.Join(strings.Split(value, ".")...))
 		if cs.Error = cs.DirExists(realpath); cs.Error != nil { // 不存在则创建
 			if err := os.MkdirAll(realpath, os.ModePerm); err != nil {
 				panic(err)
@@ -111,7 +119,7 @@ func (cs *ConfigStorage) Init(outAnyMap ...map[string]interface{}) {
 	}
 
 	// App配置
-	appConfig := types.AnyMap(cs.Get("ratgo.main").ToAnyMap())
+	appConfig := mtype.AnyMap(cs.Get("ratgo.main").ToAnyMap())
 	if len(appConfig) > 0 {
 		delete(cs.DefinedConfig, "ratgo")
 	}
@@ -183,7 +191,7 @@ func (cs *ConfigStorage) MapMerge(dstMap map[string]interface{}, merged ...inter
 }
 
 // Get app config.
-func (cs *ConfigStorage) Get(args ...string) *types.AnyValue {
+func (cs *ConfigStorage) Get(args ...string) *mtype.AnyValue {
 	return cs.DefinedConfig.Get(args...)
 }
 
@@ -219,10 +227,4 @@ func (cs *ConfigStorage) ScanDir(dirPath string) (fileSlice []os.FileInfo) {
 		fileSlice = files
 	}
 	return fileSlice
-}
-
-// Join path by file Separator.
-func (cs *ConfigStorage) joinPath(path ...string) string {
-	return strings.Join(path, string(filepath.Separator))
-
 }

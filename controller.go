@@ -37,12 +37,12 @@ func (c *Controller) Context() *gin.Context {
 	return c.context
 }
 
-// 简易模式下执行方法
+// 简易模式 - 前置方法
 func (c *Controller) BeforeExec() {
 
 }
 
-// 简易模式下执行方法
+// 简易模式 - 执行方法
 func (c *Controller) Exec() {
 
 }
